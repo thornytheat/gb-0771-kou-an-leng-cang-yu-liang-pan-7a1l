@@ -1,12 +1,13 @@
 from datetime import datetime, timezone
 from time import perf_counter_ns
 from app.faults import DockFault
+from app.modules.reservations.service import settle
 from app.pipeline import review
 from app.seals import compact, input_seals, sha
 from app.settings import VERSION
 
 
-def save(archive, files):
+def save(archive, files, book=None):
     begin = perf_counter_ns()
     hashes = input_seals(files)
     key = sha(compact([VERSION, hashes]))
@@ -17,6 +18,8 @@ def save(archive, files):
     document, reused = archive.insert(key, stamp, files, stages)
     if document['manifest']['result_sha256'] != result or sha(compact(document['stages'])) != result:
         raise DockFault('DRIFT', '归档与原件复算不一致', 409)
+    if book is not None:
+        settle(book, stages)
     return dict(brief(document), reused=reused)
 
 

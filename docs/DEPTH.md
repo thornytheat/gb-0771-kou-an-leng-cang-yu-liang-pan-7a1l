@@ -9,6 +9,7 @@
 | M3 查验占位回放 | 逐批回看入出库、调位及冻结 | `/view/custody` `/api/observe/custody` | `app/modules/custody/service.py` `app/modules/custody/transitions.py` | `tests/test_custody.py` |
 | M4 暴露分钟归属 | 按货批核查开门温度及缺证 | `/` `/api/observe/exposure` | `app/modules/exposure/service.py` `app/modules/exposure/doors.py` | `tests/test_exposure.py` |
 | M5 件数和占位对账 | 核对时间与收盘库存守恒 | `/view/capacity` `/api/observe/capacity` | `app/modules/capacity/service.py` | `tests/test_capacity.py` |
+| M5a 同班收货预约 | 在余量页登记并核对槽位预留 | `/view/reservations` `POST /api/reservations` | `app/modules/reservations/service.py` `app/modules/reservations/storage.py` | `tests/test_reservations.py` |
 | M6 批次留档复跑 | 归档原件并复算 | `/view/history` `POST /api/receipts` | `app/modules/history/service.py` `app/modules/history/storage.py` | `tests/test_history.py` |
 | M7 冷库证据签发 | 校验摘要并下载原件及依据 | `/view/certificate` `/api/certificate/<key>/export` | `app/modules/certificate/service.py` | `tests/test_certificate.py` |
 
@@ -25,6 +26,10 @@
 | TRAP-14 | K01 两个查验号 | 后写覆盖 | 全组隔离 | `app/modules/intake/service.py` | `tests/test_intake.py::test_conflicting_packet` |
 | TRAP-19 | F03 在 X9 无槽位及门温证据 | 时间重复计到多个缺证类型 | 先按槽位定义，再判门温 | `app/modules/exposure/service.py` | `tests/test_exposure.py::test_priority_keeps_gaps_mutually_exclusive` |
 | TRAP-23 | A2 改门恰逢 08:40 | 归到两个门区 | 左闭右开版本 | `app/modules/registry/versions.py` | `tests/test_registry.py::test_adjacent_versions` |
+| TRAP-31 | 两单同时争最后一个空位 | 各自读余量都成功 | 写锁内重读预约再判定 | `app/modules/reservations/storage.py` | `tests/test_reservations.py::test_only_one_concurrent_order_confirmed` |
+| TRAP-32 | 迟到调位证明预留位早被占 | 把预约当实占记在库 | 实占照原件记，原预约待协调不扣余量 | `app/modules/reservations/service.py` | `tests/test_reservations.py::test_late_move_fills_slot_and_reservation_pends` |
+| TRAP-33 | 预约货批进指定槽位 | 预留与实占各扣一次 | 转实占即释放预留，只扣一次 | `app/modules/reservations/service.py` | `tests/test_reservations.py::test_arrival_converts_hold_to_floor_credit_once` |
+| TRAP-34 | 同一张预约单重试 | 重复占位 | 单号唯一，重试回读原单 | `app/modules/reservations/storage.py` | `tests/test_reservations.py::test_retry_same_order_is_idempotent` |
 
 ## 勾稽与范围
 

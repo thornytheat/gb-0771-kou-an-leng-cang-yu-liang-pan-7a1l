@@ -9,6 +9,10 @@ def receipts():
     return current_app.extensions['ice_receipts']
 
 
+def reservations():
+    return current_app.extensions.get('ice_reservations')
+
+
 @history.get('')
 def listing():
     rows = receipts().list()
@@ -17,7 +21,7 @@ def listing():
 
 @history.post('')
 def publish():
-    return jsonify(save(receipts(), receive_pack(request.get_json(silent=True))))
+    return jsonify(save(receipts(), receive_pack(request.get_json(silent=True)), reservations()))
 
 
 @history.get('/<key>')
@@ -27,4 +31,4 @@ def detail(key):
 
 @history.post('/<key>/refresh')
 def refresh(key):
-    return jsonify(save(receipts(), receipts().read(key)['files']))
+    return jsonify(save(receipts(), receipts().read(key)['files'], reservations()))

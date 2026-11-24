@@ -20,3 +20,23 @@ document.querySelector('#docket').addEventListener('submit', event => {
   event.preventDefault(); file(event.submitter, '/api/receipts', {sample:dataset.value});
 });
 document.querySelector('#refresh')?.addEventListener('click', event => file(event.currentTarget, `/api/receipts/${event.currentTarget.dataset.id}/refresh`, null));
+
+const booking = document.querySelector('#booking');
+booking?.addEventListener('submit', async event => {
+  event.preventDefault();
+  const button = event.submitter;
+  const form = new FormData(event.currentTarget);
+  const scope = booking.dataset.receipt ? {receipt:booking.dataset.receipt} : {sample:booking.dataset.sample};
+  button.disabled = true;
+  status.textContent = '登记预约…';
+  try {
+    const response = await fetch('/api/reservations', {method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({...scope, order:form.get('order'), lot:form.get('lot'), slot:form.get('slot')})});
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.message);
+    status.textContent = `${result.reservation.order_ref} · ${result.status}${result.reused ? ' · 沿用原单' : ''}`;
+    location.reload();
+  } catch (error) {
+    status.textContent = error.message || '预约未确认';
+  } finally { button.disabled = false; }
+});

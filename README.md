@@ -16,6 +16,10 @@
 
 `GET /api/observe/<view>` 支持 `intake`、`registry`、`custody`、`exposure`、`capacity`，参数 `sample` 选择样例，`receipt` 查询归档。`GET /api/receipts/<id>` 查看归档，`POST /api/receipts/<id>/refresh` 复算，`GET /api/certificate/<id>/export` 下载证据。
 
+## 同班收货预约
+
+发车前在余量页或 `POST /api/reservations` 登记预约：`{"sample":"clean","order":"R-1","lot":"F04","slot":"A2"}`，也可用 `receipt` 或完整六份原件指明班次。返回状态 `预留`、`实占` 或 `待协调`。`GET /api/reservations` 列出本班预约，`GET /api/reservations/<order>` 查一笔。两单争最后一个空位只确认一单；同一单号重试返回原单。迟到调位若证明槽位已被别的货批占满，实占照原件记、原预约转待协调；预约货批开进指定槽位后预留转实占，余量只扣一次。归档复算会按新原件重排预约状态。
+
 [数据定义](docs/DATA-DICTIONARY.md) · [深度登记](docs/DEPTH.md) · [序列复算](docs/SHIFT-EXAMPLE.md)
 
 也可以向前五个业务入口发送 `POST /api/observe/<view>`，直接试算自有原件，不写入档案。
